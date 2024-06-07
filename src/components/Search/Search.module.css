@@ -1,0 +1,103 @@
+.main {
+  height: calc(100%);
+}
+
+.searchContainer {
+  padding: 10px;
+  position: relative;
+  height: auto;
+}
+
+.searchBarLabel {
+  position: relative;
+  z-index: 101;
+}
+
+.searchBar {
+  display: flex;
+  background-color: #242424;
+  width: auto;
+  max-width: 364px;
+  cursor: text;
+  padding: 15px 10px;
+  gap: 5px;
+  border-radius: 500px;
+  box-sizing: border-box;
+}
+
+.searchBar > img {
+  width: 20px;
+  filter: brightness(0) saturate(100%) invert(80%) sepia(15%) saturate(30%)
+    hue-rotate(332deg) brightness(97%) contrast(90%);
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.searchBar > input {
+  width: 80%;
+  max-width: 364px;
+  text-overflow: ellipsis;
+  background-color: transparent;
+  border: 0;
+  font-size: 14px;
+  color: white;
+  outline: 0;
+  font-weight: 400;
+}
+
+.searchBar:hover {
+  box-shadow: inset 0px 0px 0px 1px #ffffff4c;
+}
+
+.searchBar:focus-within {
+  box-shadow: inset 0px 0px 0px 2px #fff;
+}
+
+.searchBar > input:placeholder-shown {
+  color: rgb(117, 117, 177);
+}
+
+.suggestionsDiv {
+  display: flex;
+  flex-direction: column;
+  padding-top: 30px;
+  background-color: rgb(33, 33, 33);
+  width: 364px;
+  max-width: 364px;
+  position: absolute;
+  top: 35px;
+  z-index: 0;
+}
+
+.singleSuggestionDiv {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0px 5px;
+  box-sizing: border-box;
+}
+
+.singleSuggestionDiv:hover {
+  background-color: rgb(61, 61, 61);
+}
+
+.suggestionButton {
+  background-color: transparent;
+  border: 0;
+  flex: 1 1 auto;
+  text-align: left;
+  cursor: pointer;
+  color: white;
+  font-size: 17px;
+  font-weight: 700;
+  height: 35px;
+}
+
+.suggestionCopyButton {
+  background-color: transparent;
+  border: 0;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
