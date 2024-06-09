@@ -1,0 +1,71 @@
+.main {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  height: 81px;
+  cursor: pointer;
+  position: relative;
+  padding-left: 20px;
+  width: 100%;
+  background-color: transparent;
+  border: 0;
+  text-align: left;
+  border-bottom: 0.5px solid rgba(255, 255, 255, 0.1);
+}
+.main:hover {
+  background: #333;
+  box-shadow: -20px 0px 0px 0px #333, 20px 0px 0px 0px #333;
+}
+
+.main:hover .thumbnail {
+  filter: brightness(50%);
+}
+
+.main:hover .playIcon {
+  opacity: 1;
+}
+
+.thumbDiv {
+  position: relative;
+  width: 56px;
+  height: 100%;
+}
+
+.thumbnail {
+  width: 56px;
+  border-radius: 5px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.playIcon {
+  width: 15px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  transition: 0.2s linear;
+}
+
+.textDiv {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.title {
+  color: white;
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.desc {
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+}

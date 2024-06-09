@@ -15,9 +15,6 @@ app.get("/suggestions", async (req, res) => {
       `http://suggestqueries.google.com/complete/search?client=firefox&ds=yt&q=${q}&ds=yt&hl=az`,
       { responseEncoding: "latin1" }
     );
-    // res.setHeader("Content-Type", "application/json; charset=UTF8");
-    // const suggestions = JSON.parse(response.data.toString("utf-8"));
-    // console.log(response.data.toString("latin1"));
     res.send(response.data);
   } catch (error) {
     console.error(error);

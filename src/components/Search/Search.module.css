@@ -3,23 +3,29 @@
 }
 
 .searchContainer {
-  padding: 10px;
   position: relative;
-  height: auto;
+  height: calc(100%);
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  padding-bottom: 0;
 }
 
 .searchBarLabel {
   position: relative;
-  z-index: 101;
+  z-index: 201;
+  height: 51px;
+  padding: 20px 0 0 20px;
+  max-width: 500px;
 }
 
 .searchBar {
   display: flex;
   background-color: #242424;
   width: auto;
-  max-width: 364px;
+  max-width: 500px;
   cursor: text;
-  padding: 15px 10px;
+  padding: 15px 15px;
   gap: 5px;
   border-radius: 500px;
   box-sizing: border-box;
@@ -43,6 +49,7 @@
   color: white;
   outline: 0;
   font-weight: 400;
+  flex: 1 1 auto;
 }
 
 .searchBar:hover {
@@ -62,11 +69,12 @@
   flex-direction: column;
   padding-top: 30px;
   background-color: rgb(33, 33, 33);
-  width: 364px;
-  max-width: 364px;
+  width: 100%;
+  max-width: 500px;
   position: absolute;
-  top: 35px;
-  z-index: 0;
+  top: 45px;
+  left: 20px;
+  z-index: 200;
 }
 
 .singleSuggestionDiv {
@@ -100,4 +108,9 @@
   display: flex;
   justify-content: center;
   align-items: center;
+}
+
+.searchResults {
+  overflow: scroll;
+  height: calc(100% - 51px);
 }

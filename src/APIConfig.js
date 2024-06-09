@@ -1,5 +1,5 @@
 const API_CONFIG = {
-  yt_api_key: "YOUR_API_KEY",
+  yt_api_key: "AIzaSyAsWz-kLqkR7TRp-2RqI35DxOQkVdnuHOc",
   yt_search_endpoint: (_) =>
     `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=25&q=${_.searchQuery}&key=${API_CONFIG.yt_api_key}`,
   yt_video_info_endpoint: (_) =>
