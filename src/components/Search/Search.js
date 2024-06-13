@@ -1,12 +1,14 @@
 import styles from "./Search.module.css";
 import SearchIcon from "../../icons/search.svg";
 import Arrow from "../../icons/arrow.svg";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import axios from "axios";
 import API_CONFIG from "../../APIConfig";
 import SearchResults from "../SearchResults/SearchResults";
+import Store from "../../context";
 
 function Search({ data }) {
+  const { state, dispatch } = useContext(Store);
   const [query, setQuery] = useState(null);
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -29,7 +31,7 @@ function Search({ data }) {
       if (query) {
         try {
           const response = await axios.get(
-            `http://localhost:4000/suggestions?q=${query}`
+            `http://192.168.31.94:4000/suggestions?q=${query}`
           );
           setSuggestions(response.data[1]);
           console.log(response.data[1]);
@@ -68,10 +70,14 @@ function Search({ data }) {
       (_) => _.id.kind === "youtube#video"
     );
     setSearchResults(items);
+    let search_queries = state.search_queries;
+    search_queries.push(searchQuery);
+    dispatch({ type: "updateSearchQueries", payload: search_queries });
   }
 
   return (
     <div className={styles.main}>
+      {state.search_queries.map((item) => item)}
       <div className={styles.searchContainer}>
         <label className={styles.searchBarLabel} htmlFor="searchBar">
           <div className={styles.searchBar}>
@@ -145,7 +151,7 @@ function Search({ data }) {
                   thumbnail: item.snippet.thumbnails.default.url,
                   id: item.id.videoId,
                   playMusic: () => {
-                    data.playMusic(item.id.videoId);
+                    data.playMusic(item);
                   },
                 }}
               />

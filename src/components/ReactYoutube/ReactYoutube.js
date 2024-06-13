@@ -12,6 +12,11 @@ class ReactYoutube extends Component {
     // Expose the player to the parent component
     this.props.onPlayerReady(player);
   }
+
+  videoOnStateChange(event) {
+    const player = event.target;
+    this.props?.onStateChange(player.getCurrentState());
+  }
   render() {
     const opts = {
       height: "72",
@@ -19,13 +24,20 @@ class ReactYoutube extends Component {
       playerVars: {
         // https://developers.google.com/youtube/player_parameters
         autoplay: 1,
+        controls: 0,
+        rel: 0,
       },
     };
 
     const { videoId } = this.props;
 
     return (
-      <YouTube videoId={videoId} opts={opts} onReady={this.videoOnReady} />
+      <YouTube
+        videoId={videoId}
+        opts={opts}
+        onReady={this.videoOnReady}
+        onStateChange={this.props.onStateChange}
+      />
     );
   }
 }
