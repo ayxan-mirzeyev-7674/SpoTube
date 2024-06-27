@@ -6,6 +6,9 @@ import axios from "axios";
 import API_CONFIG from "../../APIConfig";
 import SearchResults from "../SearchResults/SearchResults";
 import Store from "../../context";
+import Menu from "@mui/material/Menu";
+import MenuItem from "@mui/material/MenuItem";
+import QueueIcon from "@mui/icons-material/Queue";
 
 function Search({ data }) {
   const { state, dispatch } = useContext(Store);
@@ -13,6 +16,20 @@ function Search({ data }) {
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
+
+  const [menu, setMenu] = useState(null);
+  const [coordinate, setCoordinate] = useState(null);
+  const [selecteditem, setSelectedItem] = useState(null);
+  const open = Boolean(menu);
+
+  const handleClick = (e, item) => {
+    setMenu(e.currentTarget);
+    setSelectedItem(item);
+    setCoordinate({
+      top: e.clientY + 20,
+      left: e.clientX - 50,
+    });
+  };
 
   function handleKeyDown(key) {
     if (key === "Enter" && query && query !== "") {
@@ -24,7 +41,7 @@ function Search({ data }) {
 
   useEffect(() => {
     if (query === "" || !query) {
-      setSuggestions([]);
+      setSuggestions(state.search_queries);
       return;
     }
     const fetchSuggestions = async () => {
@@ -69,15 +86,27 @@ function Search({ data }) {
     const items = (response.data.items || []).filter(
       (_) => _.id.kind === "youtube#video"
     );
+    setSearchResults([]);
     setSearchResults(items);
     let search_queries = state.search_queries;
-    search_queries.push(searchQuery);
-    dispatch({ type: "updateSearchQueries", payload: search_queries });
+    if (!search_queries.includes(searchQuery)) {
+      search_queries.unshift(searchQuery);
+      dispatch({ type: "updateSearchQueries", payload: search_queries });
+    } else {
+      let indexElem = search_queries.indexOf(searchQuery);
+      search_queries.splice(indexElem, 1);
+      search_queries.unshift(searchQuery);
+      dispatch({ type: "updateSearchQueries", payload: search_queries });
+    }
   }
+
+  const onAddToQueue = () => {
+    setMenu(null);
+    dispatch({ type: "updateQueue", payload: [...state.queue, selecteditem] });
+  };
 
   return (
     <div className={styles.main}>
-      {state.search_queries.map((item) => item)}
       <div className={styles.searchContainer}>
         <label className={styles.searchBarLabel} htmlFor="searchBar">
           <div className={styles.searchBar}>
@@ -137,6 +166,7 @@ function Search({ data }) {
                 fontWeight: "900",
                 fontSize: "25px",
                 marginBottom: "10px",
+                marginTop: "5px",
                 paddingLeft: "20px",
               }}
             >
@@ -153,9 +183,37 @@ function Search({ data }) {
                   playMusic: () => {
                     data.playMusic(item);
                   },
+                  handleContextMenu: (e, item) => handleClick(e, item),
+                  item,
                 }}
               />
             ))}
+            <Menu
+              open={open}
+              onClose={() => setMenu(null)}
+              anchorEl={menu}
+              anchorReference="anchorPosition"
+              anchorPosition={
+                open != null
+                  ? { top: coordinate?.top, left: coordinate?.left }
+                  : undefined
+              }
+              sx={{
+                "& .MuiPaper-root": {
+                  backgroundColor: "rgb(40,40,40)",
+                  color: "rgba(255, 255, 255, 0.9)",
+                },
+                "& .MuiButtonBase-root": {
+                  gap: "10px",
+                  fontSize: "14px",
+                },
+              }}
+            >
+              <MenuItem onClick={onAddToQueue}>
+                <QueueIcon fontSize="small" />
+                Add to queue
+              </MenuItem>
+            </Menu>
           </div>
         )}
       </div>

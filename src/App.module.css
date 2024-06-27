@@ -91,7 +91,7 @@
   background-color: var(--gray-bg);
   border-radius: 8px;
   flex: 1 1 auto;
-  padding: 20px 22px;
+  padding: 20px 8px;
 }
 
 .playlistText {
@@ -99,6 +99,8 @@
   font-weight: 800;
   font-size: 17px;
   margin: 0;
+  padding-left: 14px;
+  margin-bottom: 10px;
 }
 
 .bottomContent {
@@ -109,6 +111,13 @@
   box-sizing: border-box;
   background-color: var(--gray-bg);
   border-radius: 8px;
+  background: rgb(84, 24, 65);
+  background: linear-gradient(
+    180deg,
+    rgba(84, 24, 65, 1) 8%,
+    rgb(18, 18, 18) 51%,
+    rgb(18, 18, 18) 100%
+  );
 }
 
 .footer {
@@ -118,16 +127,18 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding: 0 16px;
+  box-sizing: border-box;
+  position: relative;
+  transform-style: preserve-3d;
 }
 
 .infoDiv {
   display: flex;
   align-items: center;
-  padding-left: 16px;
   min-width: 180px;
   width: 30%;
   box-sizing: border-box;
-  gap: 16px;
 }
 
 .currentImageDiv {
@@ -150,17 +161,19 @@
 }
 
 .currentTextDiv {
-  width: calc(100% - 56px);
+  max-width: calc(100% - 95px);
   display: flex;
   flex-direction: column;
   gap: 8px;
+  padding-left: 14px;
+  box-sizing: border-box;
 }
 
 .currentTitle {
   color: white;
   font-size: 14px;
   margin: 0;
-  font-weight: 500;
+  font-weight: 600;
   text-overflow: ellipsis;
   width: 100%;
   overflow: hidden;
@@ -171,6 +184,35 @@
   color: #a7a7a7;
   font-size: 12px;
   margin: 0;
+  font-weight: 500;
+}
+
+.addDiv {
+  width: 34px;
+  padding-left: 5px;
+  position: relative;
+}
+.addButton {
+  padding: 0px 8px;
+  border: 0;
+  background-color: transparent;
+  cursor: pointer;
+}
+.addImage {
+  width: 18px;
+  filter: invert(82%) sepia(0%) saturate(1679%) hue-rotate(242deg)
+    brightness(94%) contrast(86%);
+}
+
+.addPlaylist {
+  background-color: rgb(36, 36, 36);
+  width: 292px;
+  height: 490px;
+  border-radius: 8px;
+  position: absolute;
+  left: 10px;
+  bottom: 40px;
+  box-shadow: 0 16px 24px rgba(0, 0, 0, 0.3), 0 6px 8px rgba(0, 0, 0, 0.2);
 }
 
 .controllerDiv {
@@ -223,6 +265,14 @@
 
 .nextImg {
   width: 16px;
+  transition: 0.2s linear;
+  filter: invert(82%) sepia(0%) saturate(1679%) hue-rotate(242deg)
+    brightness(94%) contrast(86%);
+}
+
+.nextButton:hover .nextImg {
+  filter: invert(100%) sepia(0%) saturate(7498%) hue-rotate(180deg)
+    brightness(102%) contrast(103%);
 }
 
 .repeatImg {
@@ -260,7 +310,7 @@
   z-index: 10;
 }
 
-.progressBarDiv input {
+input[type="range"] {
   -webkit-appearance: none; /* Override default CSS styles */
   appearance: none;
   width: 100%;
@@ -270,7 +320,7 @@
   border-radius: 2px;
 }
 
-.progressBarDiv input::-webkit-slider-thumb {
+input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none; /* Override default look */
   appearance: none;
   width: 12px; /* Set a specific slider handle width */
@@ -281,7 +331,7 @@
   opacity: 0;
 }
 
-.progressBarDiv input::-webkit-slider-runnable-track {
+input[type="range"]::-webkit-slider-runnable-track {
   -webkit-appearance: none; /* Override default look */
   appearance: none;
   z-index: 20;
@@ -299,6 +349,59 @@
   width: 30%;
   display: flex;
   justify-content: flex-end;
+}
+
+.buttonsDiv button {
+  padding: 0 8px;
+}
+
+.volumeDiv {
+  display: flex;
+  align-items: center;
+}
+.volumeDiv button {
+  padding-top: 3px;
+}
+
+.volumeDiv img {
+  width: 18px;
+}
+
+.videoDiv {
+  position: absolute;
+  right: 0;
+  bottom: 80px;
+  transition: all 0.2s;
+}
+
+.queueDiv {
+  background-color: var(--gray-bg);
+  border: 2px solid black;
+  border-radius: 8px 0 0 0;
+  width: 400px;
+  height: 600px;
+  position: absolute;
+  right: 8px;
+  transition: 0.2s linear;
+  transform: translateZ(-10px);
+  overflow: hidden;
+}
+
+.queueTopBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 0 0 20px;
+  height: 64px;
+}
+
+.moreButton:hover .moreIcon {
+  color: white;
+}
+
+.moreIcon {
+  color: rgb(145, 145, 145);
+  transition: 0.2s linear;
 }
 
 @media only screen and (max-width: 1100px) {

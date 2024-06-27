@@ -6,26 +6,40 @@ import PauseIcon from "./icons/Media/pause.svg";
 import NextIcon from "./icons/Media/next.svg";
 import RepeatIcon from "./icons/Media/repeat.svg";
 import RepeatOneIcon from "./icons/Media/repeatOne.svg";
+import SoundOffIcon from "./icons/Media/sound-off.svg";
+import Sound1Icon from "./icons/Media/sound-volume-1.svg";
+import Sound2Icon from "./icons/Media/sound-volume-2.svg";
+import QueueIcon from "./icons/Media/queue.svg";
+import YoutubeIcon from "./icons/Media/youtube.svg";
+import CloseIcon from "@mui/icons-material/Close";
+import TickIcon from "./icons/Media/tick-circle.svg";
+import AddIcon from "./icons/Media/add-circle.svg";
 import Home from "./components/Home/Home";
 import Search from "./components/Search/Search";
 import ReactYoutube from "./components/ReactYoutube/ReactYoutube";
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 import { useContext, useEffect, useReducer, useRef, useState } from "react";
+import IconButton from "@mui/material/IconButton";
 
 import Store from "./context";
 import reducer from "./reducer";
 
 import { usePersistedContext, usePersistedReducer } from "./usePersist";
+import PlaylistListItem from "./components/PlaylistListItem/PlaylistListItem";
+import Queue from "./components/Queue/Queue";
 
 function App() {
-  const [videoId, setVideoId] = useState(null);
   const [player, setPlayer] = useState(null);
-  const [currentMusic, setCurrentMusic] = useState(null);
   const [playerState, setPlayerState] = useState(-1);
   const [elapsed, setElapsed] = useState(0);
+  const [elapsedSec, setElapsedSec] = useState(0);
   const [repeatOne, setRepeatOne] = useState(false);
+  const [showVideo, setShowVideo] = useState(false);
+  const [showQueue, setShowQueue] = useState(false);
+  const [showAddPlaylist, setShowAddPlaylist] = useState(false);
 
   const progressRef = useRef(null);
+  const volumeRef = useRef(null);
 
   const globalStore = usePersistedContext(useContext(Store), "state");
   const [state, dispatch] = usePersistedReducer(
@@ -38,6 +52,11 @@ function App() {
   };
 
   const handleStageChange = () => {
+    if (repeatOne && player.getPlayerState() === 0) {
+      player.seekTo(0);
+    } else if (!repeatOne && player.getPlayerState() === 0) {
+      changeMusic(1);
+    }
     setPlayerState(player.getPlayerState());
     console.log("Handle");
   };
@@ -49,8 +68,10 @@ function App() {
 
   const playMusic = (item) => {
     console.log(item);
-    setVideoId(item.id.videoId);
-    setCurrentMusic(item);
+    dispatch({ type: "updateCurrentMusic", payload: item });
+    dispatch({ type: "updateQueue", payload: [item] });
+    dispatch({ type: "updateQueueId", payload: 0 });
+    progressRef.current.value = 0;
   };
 
   const playVideo = () => {
@@ -65,6 +86,10 @@ function App() {
     }
   };
 
+  useEffect(() => {
+    player?.setVolume(state.volume);
+  }, [state.volume]);
+
   const formatSec = (elapsed_sec) => {
     const min = Math.floor(elapsed_sec / 60);
     const seconds = Math.floor(elapsed_sec - min * 60);
@@ -73,12 +98,12 @@ function App() {
   };
 
   useEffect(() => {
-    console.log("USE");
+    player?.setVolume(state.volume);
     const interval = setInterval(async () => {
       const elapsed_sec = await player?.getCurrentTime(); // this is a promise. dont forget to await
-
-      setElapsed(formatSec(elapsed_sec));
-      videoId && (progressRef.current.value = elapsed_sec);
+      setElapsed(formatSec(elapsed_sec || 0));
+      setElapsedSec(elapsed_sec);
+      state.currentMusic && (progressRef.current.value = elapsed_sec);
     }, 100); // 100 ms refresh. increase it if you don't require millisecond precision
 
     return () => {
@@ -91,8 +116,30 @@ function App() {
     console.log(player?.getDuration());
     if (player.getPlayerState() == 1 || player.getPlayerState() == 0) {
       pauseVideo();
-    } else if (player.getPlayerState() == 2) {
+    } else if (player.getPlayerState() == 2 || player.getPlayerState() == -1) {
       playVideo();
+    }
+  };
+
+  const onRepeatButton = () => {
+    setRepeatOne((pre) => !pre);
+  };
+
+  const onQueueButton = () => {
+    setShowQueue((pre) => !pre);
+  };
+
+  const onVideoButton = () => {
+    setShowVideo((pre) => !pre);
+  };
+
+  const onVolumeButton = () => {
+    if (state.volume !== 0 && player.getVolume() !== 0) {
+      player.setVolume(0);
+      volumeRef.current.value = 0;
+    } else if (player.getVolume() === 0) {
+      player.setVolume(state.volume);
+      volumeRef.current.value = state.volume;
     }
   };
 
@@ -100,6 +147,39 @@ function App() {
     if (event.keyCode !== 32 || event.target.matches("input")) return;
 
     toggleVideo();
+  };
+
+  document.onclick = function (event) {
+    if (
+      event.target.id !== "addPlaylist" &&
+      event.target.id !== "addImage" &&
+      event.target.id !== "addButton"
+    ) {
+      setShowAddPlaylist(false);
+    }
+  };
+
+  const changeMusic = (n) => {
+    if (n === -1 && elapsedSec > 3) {
+      player.seekTo(0);
+      return;
+    }
+    if (state.queue_id + n < 0) {
+      dispatch({
+        type: "updateCurrentMusic",
+        payload: state.queue[state.queue.length - 1],
+      });
+      dispatch({ type: "updateQueueId", payload: state.queue.length - 1 });
+    } else {
+      dispatch({
+        type: "updateCurrentMusic",
+        payload: state.queue[(state.queue_id + n) % state.queue.length],
+      });
+      dispatch({
+        type: "updateQueueId",
+        payload: (state.queue_id + n) % state.queue.length,
+      });
+    }
   };
 
   return (
@@ -135,6 +215,14 @@ function App() {
               <div className={styles.bottomSection}>
                 <div className={styles.bottomContent}>
                   <p className={styles.playlistText}>Playlists</p>
+                  <PlaylistListItem
+                    data={{
+                      thumbnail:
+                        "https://misc.scdn.co/liked-songs/liked-songs-64.png",
+                      title: "Liked Songs",
+                      channelName: "Playlist • 147 songs",
+                    }}
+                  />
                 </div>
               </div>
             </div>
@@ -152,26 +240,89 @@ function App() {
             </div>
           </div>
           <div className={styles.footer}>
+            <div
+              style={{ right: showVideo ? "0px" : "-320px" }}
+              className={styles.videoDiv}
+            >
+              <ReactYoutube
+                className={styles.player}
+                videoId={state.currentMusic?.id.videoId}
+                onPlayerReady={handlePlayerReady}
+                onStateChange={handleStageChange}
+              ></ReactYoutube>
+            </div>
+            <div
+              style={{ bottom: showQueue ? "86px" : "-620px" }}
+              className={styles.queueDiv}
+            >
+              <div className={styles.queueTopBar}>
+                <div
+                  style={{
+                    color: "white",
+                    fontSize: "16px",
+                    fontWeight: "700",
+                  }}
+                >
+                  Queue
+                </div>
+                <IconButton
+                  id="moreButton"
+                  className={styles.moreButton}
+                  aria-label="more"
+                  onClick={(e) => {
+                    setShowQueue(false);
+                  }}
+                >
+                  <CloseIcon className={styles.moreIcon} />
+                </IconButton>
+              </div>
+              <Queue />
+            </div>
             <div className={styles.infoDiv}>
               <div className={styles.currentImageDiv}>
                 <img
-                  src={currentMusic?.snippet.thumbnails.default.url}
+                  src={state.currentMusic?.snippet.thumbnails.default.url}
                   className={styles.currentImage}
                 ></img>
               </div>
               <div className={styles.currentTextDiv}>
                 <span className={styles.currentTitle}>
-                  {currentMusic?.snippet.title}
+                  {state.currentMusic?.snippet.title}
                 </span>
                 <span className={styles.currentDesc}>
-                  {currentMusic?.snippet.channelTitle}
+                  {state.currentMusic?.snippet.channelTitle}
                 </span>
               </div>
+              {state.currentMusic && (
+                <div className={styles.addDiv}>
+                  <div
+                    style={{ display: showAddPlaylist ? "block" : "none" }}
+                    className={styles.addPlaylist}
+                    id="addPlaylist"
+                  ></div>
+                  <button
+                    onClick={() => setShowAddPlaylist((pre) => !pre)}
+                    className={styles.addButton}
+                    id="addButton"
+                  >
+                    <img
+                      id="addImage"
+                      className={styles.addImage}
+                      src={AddIcon}
+                    ></img>
+                  </button>
+                </div>
+              )}
             </div>
             <div className={styles.controllerDiv}>
               <div className={styles.mediaButtons}>
                 <div className={styles.leftMedia}>
-                  <button className={styles.nextButton}>
+                  <button
+                    onClick={() => {
+                      changeMusic(-1);
+                    }}
+                    className={styles.nextButton}
+                  >
                     <img
                       style={{ transform: "scaleX(-1)" }}
                       className={styles.nextImg}
@@ -188,7 +339,13 @@ function App() {
                   ></img>
                 </button>
                 <div className={styles.rightMedia}>
-                  <button className={styles.nextButton}>
+                  <button
+                    onClick={() => {
+                      changeMusic(1);
+                    }}
+                    on
+                    className={styles.nextButton}
+                  >
                     <img
                       className={styles.nextImg}
                       src={NextIcon}
@@ -196,9 +353,7 @@ function App() {
                     ></img>
                   </button>
                   <button
-                    onClick={() => {
-                      setRepeatOne((pre) => !pre);
-                    }}
+                    onClick={onRepeatButton}
                     className={styles.nextButton}
                   >
                     <img
@@ -238,17 +393,57 @@ function App() {
                   )}
                 </div>
                 <span style={{ color: "white", textAlign: "right" }}>
-                  {formatSec(player?.getDuration())}
+                  {formatSec(player?.getDuration() || 0)}
                 </span>
               </div>
             </div>
             <div className={styles.buttonsDiv}>
-              <ReactYoutube
-                className={styles.player}
-                videoId={videoId}
-                onPlayerReady={handlePlayerReady}
-                onStateChange={handleStageChange}
-              ></ReactYoutube>
+              <button onClick={onQueueButton} className={styles.nextButton}>
+                <img className={styles.nextImg} src={QueueIcon} alt="Queue" />
+              </button>
+              <button onClick={onVideoButton} className={styles.nextButton}>
+                <img className={styles.nextImg} src={YoutubeIcon} alt="Video" />
+              </button>
+              <div className={styles.volumeDiv}>
+                <button onClick={onVolumeButton} className={styles.nextButton}>
+                  <img
+                    className={styles.nextImg}
+                    src={
+                      volumeRef.current?.value > 50
+                        ? Sound2Icon
+                        : volumeRef.current?.value > 0
+                        ? Sound1Icon
+                        : SoundOffIcon
+                    }
+                    alt="Volume"
+                  />
+                </button>
+                <div className={styles.progressDiv} style={{ width: "95px" }}>
+                  <input
+                    type="range"
+                    min={0}
+                    max={100}
+                    step={1}
+                    defaultValue={state.volume}
+                    ref={volumeRef}
+                    onChange={(e) => {
+                      dispatch({
+                        type: "updateVolume",
+                        payload: e.target.value,
+                      });
+                    }}
+                  ></input>
+                  {progressRef.current && (
+                    <div
+                      style={{
+                        width:
+                          "calc(" + volumeRef?.current.value.toString() + "% )",
+                      }}
+                      className={styles.progress}
+                    ></div>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         </div>

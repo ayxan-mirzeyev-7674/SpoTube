@@ -1,0 +1,27 @@
+.main {
+  height: calc(100% - 64px);
+  overflow-y: scroll;
+  overflow-x: hidden;
+}
+
+.main::-webkit-scrollbar {
+  background-color: transparent;
+  width: 8px;
+}
+
+/* background of the scrollbar except button or resizer */
+.main::-webkit-scrollbar-track {
+  background-color: transparent;
+}
+
+/* scrollbar itself */
+.main::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.3);
+  border-radius: 16px;
+  opacity: 1;
+}
+
+/* set button(top and bottom of the scrollbar) */
+.main::-webkit-scrollbar-button {
+  display: none;
+}
