@@ -1,7 +1,13 @@
 import React from "react";
 
 const Store = React.createContext({
-  playlists: [{ title: "Liked Songs", content: [] }],
+  playlists: [
+    {
+      title: "Liked Songs",
+      thumbnail: "https://misc.scdn.co/liked-songs/liked-songs-64.png",
+      content: [],
+    },
+  ],
   queue: [],
   queue_id: 0,
   search_queries: [],

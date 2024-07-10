@@ -13,19 +13,32 @@ import QueueIcon from "./icons/Media/queue.svg";
 import YoutubeIcon from "./icons/Media/youtube.svg";
 import CloseIcon from "@mui/icons-material/Close";
 import TickIcon from "./icons/Media/tick-circle.svg";
-import AddIcon from "./icons/Media/add-circle.svg";
+import AddIconCircle from "./icons/Media/add-circle.svg";
 import Home from "./components/Home/Home";
 import Search from "./components/Search/Search";
 import ReactYoutube from "./components/ReactYoutube/ReactYoutube";
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 import { useContext, useEffect, useReducer, useRef, useState } from "react";
 import IconButton from "@mui/material/IconButton";
+import AddIcon from "@mui/icons-material/Add";
+import DefaultIcon from "./icons/graymusic.jpeg";
+
+import { styled } from "@mui/material/styles";
+import Button from "@mui/material/Button";
+import CloudUploadIcon from "@mui/icons-material/CloudUpload";
+
+import Backdrop from "@mui/material/Backdrop";
+import Box from "@mui/material/Box";
+import Modal from "@mui/material/Modal";
+import Fade from "@mui/material/Fade";
+import Typography from "@mui/material/Typography";
 
 import Store from "./context";
 import reducer from "./reducer";
 
 import { usePersistedContext, usePersistedReducer } from "./usePersist";
 import PlaylistListItem from "./components/PlaylistListItem/PlaylistListItem";
+import PlayListView from "./components/PlayListView/PlayListView";
 import Queue from "./components/Queue/Queue";
 
 function App() {
@@ -37,15 +50,51 @@ function App() {
   const [showVideo, setShowVideo] = useState(false);
   const [showQueue, setShowQueue] = useState(false);
   const [showAddPlaylist, setShowAddPlaylist] = useState(false);
+  const [file, setFile] = useState(null);
+  const [preview, setPreview] = useState(null);
 
   const progressRef = useRef(null);
   const volumeRef = useRef(null);
+
+  const [open, setOpen] = useState(false);
+  const handleOpen = () => setOpen(true);
+  const handleClose = () => {
+    setOpen(false);
+    setPreview(null);
+    setFile(null);
+  };
 
   const globalStore = usePersistedContext(useContext(Store), "state");
   const [state, dispatch] = usePersistedReducer(
     useReducer(reducer, globalStore),
     "state"
   );
+
+  const style = {
+    position: "absolute",
+    top: "50%",
+    left: "50%",
+    transform: "translate(-50%, -50%)",
+    width: 400,
+    bgcolor: "#282828",
+    color: "white",
+    border: "2px solid #000",
+    boxShadow: 24,
+    p: 4,
+    fontFamily: "Nunito",
+  };
+
+  const VisuallyHiddenInput = styled("input")({
+    clip: "rect(0 0 0 0)",
+    clipPath: "inset(50%)",
+    height: 1,
+    overflow: "hidden",
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    whiteSpace: "nowrap",
+    width: 1,
+  });
 
   const handlePlayerReady = (playerInstance) => {
     setPlayer(playerInstance);
@@ -64,6 +113,33 @@ function App() {
   const handleProgressChange = () => {
     console.log(progressRef.current.value);
     player.seekTo(progressRef.current.value);
+  };
+
+  const handleFileChange = (e) => {
+    setPreview(URL.createObjectURL(e.target.files[0]));
+    setFile(e.target.files[0]);
+    console.log(e.target.files[0]);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    const formData = new FormData();
+    formData.append("image", file);
+
+    try {
+      const response = await axios.post(
+        "http://localhost:4000/upload",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   const playMusic = (item) => {
@@ -214,15 +290,86 @@ function App() {
               </div>
               <div className={styles.bottomSection}>
                 <div className={styles.bottomContent}>
-                  <p className={styles.playlistText}>Playlists</p>
-                  <PlaylistListItem
-                    data={{
-                      thumbnail:
-                        "https://misc.scdn.co/liked-songs/liked-songs-64.png",
-                      title: "Liked Songs",
-                      channelName: "Playlist • 147 songs",
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
                     }}
-                  />
+                  >
+                    {" "}
+                    <p className={styles.playlistText}>Playlists</p>
+                    <IconButton
+                      id="addButton"
+                      className={styles.moreButton}
+                      aria-label="add"
+                      onClick={handleOpen}
+                    >
+                      <AddIcon className={styles.moreIcon} />
+                    </IconButton>
+                    <Modal
+                      aria-labelledby="transition-modal-title"
+                      aria-describedby="transition-modal-description"
+                      open={open}
+                      onClose={handleClose}
+                      closeAfterTransition
+                      slots={{ backdrop: Backdrop }}
+                      slotProps={{
+                        backdrop: {
+                          timeout: 500,
+                        },
+                      }}
+                    >
+                      <Fade in={open}>
+                        <Box className={styles.addModal} sx={style}>
+                          <Typography
+                            id="transition-modal-title"
+                            variant="h6"
+                            component="h2"
+                          >
+                            Create a Playlist
+                          </Typography>
+                          <Typography
+                            id="transition-modal-description"
+                            sx={{ mt: 2 }}
+                          >
+                            <div className={styles.playlistIcon}>
+                              <img
+                                className={styles.playlistIconImg}
+                                src={file ? preview : DefaultIcon}
+                              ></img>
+                            </div>
+                            <Button
+                              component="label"
+                              role={undefined}
+                              variant="contained"
+                              color="secondary"
+                              tabIndex={-1}
+                              startIcon={<CloudUploadIcon />}
+                            >
+                              Upload file
+                              <VisuallyHiddenInput
+                                accept="image/*"
+                                onChange={handleFileChange}
+                                type="file"
+                              />
+                            </Button>
+                          </Typography>
+                        </Box>
+                      </Fade>
+                    </Modal>
+                  </div>
+
+                  {state.playlists.map((item, index) => (
+                    <PlaylistListItem
+                      key={index}
+                      data={{
+                        thumbnail: item.thumbnail,
+                        title: item.title,
+                        length: item.content.length,
+                      }}
+                    />
+                  ))}
                 </div>
               </div>
             </div>
@@ -235,6 +382,7 @@ function App() {
                     <Search data={{ playMusic: (item) => playMusic(item) }} />
                   }
                 />
+                <Route path="/playlist/:id" element={<PlayListView />} />
                 <Route path="*" element={<Home />} />
               </Routes>
             </div>
@@ -308,7 +456,7 @@ function App() {
                     <img
                       id="addImage"
                       className={styles.addImage}
-                      src={AddIcon}
+                      src={AddIconCircle}
                     ></img>
                   </button>
                 </div>

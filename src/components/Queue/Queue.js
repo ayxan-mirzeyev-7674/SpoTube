@@ -5,6 +5,7 @@ import QueueItem from "../QueueItem/QueueItem";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import DeleteIcon from "@mui/icons-material/Delete";
+import DraggableList from "../DraggableList/DraggableList";
 
 function Queue() {
   const { state, dispatch } = useContext(Store);
@@ -18,8 +19,13 @@ function Queue() {
     console.log(selecteditem);
     let queueCopy = [...state.queue];
     queueCopy.splice(selecteditem, 1);
-    dispatch({ type: "updateQueue", payload: queueCopy });
-    setMenu(null);
+    if (selecteditem !== state.queue_id) {
+      dispatch({ type: "updateQueue", payload: queueCopy });
+      if (selecteditem < state.queue_id) {
+        dispatch({ type: "updateQueueId", payload: state.queue_id - 1 });
+      }
+      setMenu(null);
+    }
   };
 
   return (
@@ -65,7 +71,10 @@ function Queue() {
           },
         }}
       >
-        <MenuItem onClick={onRemoveFromQueue}>
+        <MenuItem
+          disabled={selecteditem === state.queue_id}
+          onClick={onRemoveFromQueue}
+        >
           <DeleteIcon fontSize="small" />
           Remove from queue
         </MenuItem>
