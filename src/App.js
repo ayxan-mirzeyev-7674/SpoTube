@@ -22,6 +22,7 @@ import { useContext, useEffect, useReducer, useRef, useState } from "react";
 import IconButton from "@mui/material/IconButton";
 import AddIcon from "@mui/icons-material/Add";
 import DefaultIcon from "./icons/graymusic.jpeg";
+import { v4 as uuid } from "uuid";
 
 import { styled } from "@mui/material/styles";
 import Button from "@mui/material/Button";
@@ -41,6 +42,9 @@ import PlaylistListItem from "./components/PlaylistListItem/PlaylistListItem";
 import PlayListView from "./components/PlayListView/PlayListView";
 import Queue from "./components/Queue/Queue";
 
+import TextField from "@mui/material/TextField";
+import AddPlaylistModal from "./components/AddPlaylistModal/AddPlaylistModal";
+
 function App() {
   const [player, setPlayer] = useState(null);
   const [playerState, setPlayerState] = useState(-1);
@@ -52,6 +56,7 @@ function App() {
   const [showAddPlaylist, setShowAddPlaylist] = useState(false);
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState(null);
+  const [playlistName, setPlaylistName] = useState(null);
 
   const progressRef = useRef(null);
   const volumeRef = useRef(null);
@@ -62,6 +67,7 @@ function App() {
     setOpen(false);
     setPreview(null);
     setFile(null);
+    setPlaylistName(null);
   };
 
   const globalStore = usePersistedContext(useContext(Store), "state");
@@ -78,7 +84,6 @@ function App() {
     width: 400,
     bgcolor: "#282828",
     color: "white",
-    border: "2px solid #000",
     boxShadow: 24,
     p: 4,
     fontFamily: "Nunito",
@@ -121,26 +126,26 @@ function App() {
     console.log(e.target.files[0]);
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault();
 
-    const formData = new FormData();
-    formData.append("image", file);
+  //   const formData = new FormData();
+  //   formData.append("image", file);
 
-    try {
-      const response = await axios.post(
-        "http://localhost:4000/upload",
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
-    } catch (error) {
-      console.error(error);
-    }
-  };
+  //   try {
+  //     const response = await axios.post(
+  //       "http://localhost:4000/upload",
+  //       formData,
+  //       {
+  //         headers: {
+  //           "Content-Type": "multipart/form-data",
+  //         },
+  //       }
+  //     );
+  //   } catch (error) {
+  //     console.error(error);
+  //   }
+  // };
 
   const playMusic = (item) => {
     console.log(item);
@@ -229,7 +234,8 @@ function App() {
     if (
       event.target.id !== "addPlaylist" &&
       event.target.id !== "addImage" &&
-      event.target.id !== "addButton"
+      event.target.id !== "addButton" &&
+      event.target.id !== "addPlayListItem"
     ) {
       setShowAddPlaylist(false);
     }
@@ -255,6 +261,25 @@ function App() {
         type: "updateQueueId",
         payload: (state.queue_id + n) % state.queue.length,
       });
+    }
+  };
+
+  const isPlaylistReady = () => {
+    return playlistName && playlistName !== "";
+  };
+
+  const handleCreatePlaylist = () => {
+    if (isPlaylistReady()) {
+      const unique_id = uuid();
+      let playlistsCopies = [...state.playlists];
+      playlistsCopies.push({
+        id: unique_id,
+        title: playlistName,
+        thumbnail: null,
+        content: [],
+      });
+      dispatch({ type: "createNewPlaylist", payload: playlistsCopies });
+      handleClose();
     }
   };
 
@@ -326,6 +351,7 @@ function App() {
                             id="transition-modal-title"
                             variant="h6"
                             component="h2"
+                            sx={{ fontWeight: "800" }}
                           >
                             Create a Playlist
                           </Typography>
@@ -338,22 +364,44 @@ function App() {
                                 className={styles.playlistIconImg}
                                 src={file ? preview : DefaultIcon}
                               ></img>
-                            </div>
-                            <Button
-                              component="label"
-                              role={undefined}
-                              variant="contained"
-                              color="secondary"
-                              tabIndex={-1}
-                              startIcon={<CloudUploadIcon />}
-                            >
-                              Upload file
-                              <VisuallyHiddenInput
-                                accept="image/*"
-                                onChange={handleFileChange}
-                                type="file"
+                              <TextField
+                                id="filled-basic"
+                                label="Name"
+                                variant="outlined"
+                                onChange={(e) => {
+                                  setPlaylistName(e.target.value);
+                                }}
+                                color={playlistName ? "success" : "error"}
+                                value={playlistName}
+                                focused
                               />
-                            </Button>
+                            </div>
+                            <div className={styles.playListButtonDiv}>
+                              {/* <Button
+                                component="label"
+                                role={undefined}
+                                variant="contained"
+                                color="secondary"
+                                tabIndex={-1}
+                                startIcon={<CloudUploadIcon />}
+                              >
+                                Upload file
+                                <VisuallyHiddenInput
+                                  accept="image/*"
+                                  onChange={handleFileChange}
+                                  type="file"
+                                />
+                              </Button> */}
+                              <button
+                                onClick={handleCreatePlaylist}
+                                disabled={
+                                  !(playlistName && playlistName !== "")
+                                }
+                                className={styles.saveButton}
+                              >
+                                Save
+                              </button>
+                            </div>
                           </Typography>
                         </Box>
                       </Fade>
@@ -367,6 +415,7 @@ function App() {
                         thumbnail: item.thumbnail,
                         title: item.title,
                         length: item.content.length,
+                        id: item.id,
                       }}
                     />
                   ))}
@@ -382,7 +431,14 @@ function App() {
                     <Search data={{ playMusic: (item) => playMusic(item) }} />
                   }
                 />
-                <Route path="/playlist/:id" element={<PlayListView />} />
+                <Route
+                  path="/playlist/:id"
+                  element={
+                    <PlayListView
+                      data={{ playMusic: (item) => playMusic(item) }}
+                    />
+                  }
+                />
                 <Route path="*" element={<Home />} />
               </Routes>
             </div>
@@ -447,7 +503,9 @@ function App() {
                     style={{ display: showAddPlaylist ? "block" : "none" }}
                     className={styles.addPlaylist}
                     id="addPlaylist"
-                  ></div>
+                  >
+                    <AddPlaylistModal />
+                  </div>
                   <button
                     onClick={() => setShowAddPlaylist((pre) => !pre)}
                     className={styles.addButton}

@@ -1,15 +1,13 @@
-import styles from "./PlaylistListItem.module.css";
+import styles from "./AddPlaylistItem.module.css";
 import DefaultIcon from "../../icons/graymusic.jpeg";
-import { useNavigate } from "react-router-dom";
 
 function PlaylistListItem({ data }) {
-  const navigate = useNavigate();
-
-  const navigateToPage = () => {
-    navigate("playlist/" + data.id);
-  };
   return (
-    <button onClick={navigateToPage} className={styles.main}>
+    <button
+      id="addPlayListItem"
+      onClick={data.playMusic}
+      className={styles.main}
+    >
       <div className={styles.thumbDiv}>
         <img
           alt="thumbnail"
@@ -19,7 +17,7 @@ function PlaylistListItem({ data }) {
       </div>
       <div className={styles.textDiv}>
         <p className={styles.title}>{data.title}</p>
-        <p className={styles.desc}>Playlist • {data.length} songs</p>
+        {data.selected && <p>Selected</p>}
       </div>
     </button>
   );

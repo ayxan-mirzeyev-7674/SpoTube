@@ -17,6 +17,9 @@ export default function reducer(state, action) {
     case "updateQueueId":
       newState = { ...state, queue_id: action.payload };
       break;
+    case "createNewPlaylist":
+      newState = { ...state, playlists: action.payload };
+      break;
     default:
       break;
   }
