@@ -56,3 +56,24 @@
   font-size: 14px;
   font-weight: 400;
 }
+
+.selectedTick {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  transform: translateY(-50%);
+  width: 15px;
+  height: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgb(114, 114, 114);
+  border-radius: 50%;
+}
+
+.tickIcon {
+  width: 20px;
+  height: 20px;
+  filter: invert(61%) sepia(100%) saturate(486%) hue-rotate(84deg)
+    brightness(95%) contrast(84%);
+}

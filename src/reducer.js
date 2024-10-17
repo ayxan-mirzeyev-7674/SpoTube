@@ -20,6 +20,9 @@ export default function reducer(state, action) {
     case "createNewPlaylist":
       newState = { ...state, playlists: action.payload };
       break;
+    case "updateLastSecond":
+      newState = { ...state, lastSec: action.payload };
+      break;
     default:
       break;
   }

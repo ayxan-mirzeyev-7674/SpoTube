@@ -6,6 +6,7 @@ import SearchResults from "../SearchResults/SearchResults";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import QueueIcon from "@mui/icons-material/Queue";
+import DefaultIcon from "../../icons/graymusic.jpg";
 
 function PlayListView({ data }) {
   const { state, dispatch } = useContext(Store);
@@ -31,25 +32,51 @@ function PlayListView({ data }) {
     dispatch({ type: "updateQueue", payload: [...state.queue, selecteditem] });
   };
 
+  const playPlaylistMusic = (item, index) => {
+    console.log(item);
+    dispatch({ type: "updateCurrentMusic", payload: item });
+    dispatch({ type: "updateQueue", payload: [...currentPlaylist.content] });
+    dispatch({ type: "updateQueueId", payload: index });
+    data.resetProgress();
+  };
+
   return (
-    <div style={{ color: "white" }}>
-      PlayList Title : {currentPlaylist?.title}
-      {currentPlaylist?.content.map((item, index) => (
-        <SearchResults
-          key={index}
-          data={{
-            title: item.snippet.title,
-            channelName: item.snippet.channelTitle,
-            thumbnail: item.snippet.thumbnails.default.url,
-            id: item.id.videoId,
-            playMusic: () => {
-              data.playMusic(item);
-            },
-            handleContextMenu: (e, item) => handleClick(e, item),
-            item,
-          }}
-        />
-      ))}
+    <div
+      className={
+        currentPlaylist?.id === "0" ? styles.mainLiked : styles.mainDefault
+      }
+    >
+      <div className={styles.header}>
+        <div className={styles.bannerDiv}>
+          <img
+            className={styles.banner}
+            src={currentPlaylist?.thumbnail || DefaultIcon}
+          ></img>
+        </div>
+        <div className={styles.textDiv}>
+          <span className={styles.playlistText}>Playlist</span>
+          <span className={styles.title}>{currentPlaylist?.title}</span>
+        </div>
+      </div>
+      <div className={styles.elements}>
+        {currentPlaylist?.content.map((item, index) => (
+          <SearchResults
+            key={index}
+            data={{
+              title: item.snippet.title,
+              channelName: item.snippet.channelTitle,
+              thumbnail: item.snippet.thumbnails.default.url,
+              id: item.id.videoId,
+              playMusic: () => {
+                playPlaylistMusic(item, index);
+              },
+              handleContextMenu: (e, item) => handleClick(e, item),
+              item,
+            }}
+          />
+        ))}
+      </div>
+
       <Menu
         open={open}
         onClose={() => setMenu(null)}

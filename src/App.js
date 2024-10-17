@@ -21,7 +21,7 @@ import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 import { useContext, useEffect, useReducer, useRef, useState } from "react";
 import IconButton from "@mui/material/IconButton";
 import AddIcon from "@mui/icons-material/Add";
-import DefaultIcon from "./icons/graymusic.jpeg";
+import DefaultIcon from "./icons/graymusic.jpg";
 import { v4 as uuid } from "uuid";
 
 import { styled } from "@mui/material/styles";
@@ -102,17 +102,26 @@ function App() {
   });
 
   const handlePlayerReady = (playerInstance) => {
+    if (
+      playerInstance.getVideoUrl().split("&v=")[1] ===
+      state.currentMusic?.id.videoId
+    ) {
+      playerInstance.seekTo(state.lastSec);
+    } else {
+      dispatch({ type: "updateLastSecond", payload: 0 });
+    }
     setPlayer(playerInstance);
   };
 
   const handleStageChange = () => {
     if (repeatOne && player.getPlayerState() === 0) {
       player.seekTo(0);
-    } else if (!repeatOne && player.getPlayerState() === 0) {
-      changeMusic(1);
     }
+    // else if (!repeatOne && player.getPlayerState() === 0) {
+    //   changeMusic(1);
+    // }
     setPlayerState(player.getPlayerState());
-    console.log("Handle");
+    console.log("State: " + player.getPlayerState().toString());
   };
 
   const handleProgressChange = () => {
@@ -153,6 +162,7 @@ function App() {
     dispatch({ type: "updateQueue", payload: [item] });
     dispatch({ type: "updateQueueId", payload: 0 });
     progressRef.current.value = 0;
+    // player.loadPlaylist({ playlist: item.id.videoId, index: 0 });
   };
 
   const playVideo = () => {
@@ -171,6 +181,23 @@ function App() {
     player?.setVolume(state.volume);
   }, [state.volume]);
 
+  useEffect(() => {
+    if (
+      player?.getPlaylistIndex() !== null &&
+      !repeatOne
+      // && player?.getVideoUrl().split("&v=")[1] !== state.currentMusic?.id.videoId
+    ) {
+      console.log("Playlist ID: " + player?.getPlaylistIndex());
+      let music = state.queue[player?.getPlaylistIndex()];
+      dispatch({ type: "updateCurrentMusic", payload: music });
+      dispatch({
+        type: "updateQueueId",
+        payload: player?.getPlaylistIndex(),
+      });
+      console.log("Embed Code: " + player?.getVideoUrl().split("&v=")[1]);
+    }
+  }, [player?.getPlaylistIndex()]);
+
   const formatSec = (elapsed_sec) => {
     const min = Math.floor(elapsed_sec / 60);
     const seconds = Math.floor(elapsed_sec - min * 60);
@@ -179,12 +206,18 @@ function App() {
   };
 
   useEffect(() => {
-    player?.setVolume(state.volume);
+    try {
+      player?.setVolume(state.volume);
+    } catch (err) {
+      console.error(err);
+    }
+
     const interval = setInterval(async () => {
       const elapsed_sec = await player?.getCurrentTime(); // this is a promise. dont forget to await
       setElapsed(formatSec(elapsed_sec || 0));
       setElapsedSec(elapsed_sec);
       state.currentMusic && (progressRef.current.value = elapsed_sec);
+      dispatch({ type: "updateLastSecond", payload: elapsed_sec });
     }, 100); // 100 ms refresh. increase it if you don't require millisecond precision
 
     return () => {
@@ -435,7 +468,12 @@ function App() {
                   path="/playlist/:id"
                   element={
                     <PlayListView
-                      data={{ playMusic: (item) => playMusic(item) }}
+                      data={{
+                        playMusic: (item) => playMusic(item),
+                        resetProgress: () => {
+                          progressRef.current.value = 0;
+                        },
+                      }}
                     />
                   }
                 />
@@ -453,6 +491,9 @@ function App() {
                 videoId={state.currentMusic?.id.videoId}
                 onPlayerReady={handlePlayerReady}
                 onStateChange={handleStageChange}
+                queue={state.queue?.map((item) => item.id.videoId)}
+                queueId={state.queue_id}
+                loopSingle={repeatOne}
               ></ReactYoutube>
             </div>
             <div
@@ -525,6 +566,7 @@ function App() {
                 <div className={styles.leftMedia}>
                   <button
                     onClick={() => {
+                      dispatch({ type: "updateLastSecond", payload: 0 });
                       changeMusic(-1);
                     }}
                     className={styles.nextButton}
@@ -547,6 +589,7 @@ function App() {
                 <div className={styles.rightMedia}>
                   <button
                     onClick={() => {
+                      dispatch({ type: "updateLastSecond", payload: 0 });
                       changeMusic(1);
                     }}
                     on

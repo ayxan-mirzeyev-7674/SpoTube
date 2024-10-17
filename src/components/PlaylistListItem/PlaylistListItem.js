@@ -1,5 +1,5 @@
 import styles from "./PlaylistListItem.module.css";
-import DefaultIcon from "../../icons/graymusic.jpeg";
+import DefaultIcon from "../../icons/graymusic.jpg";
 import { useNavigate } from "react-router-dom";
 
 function PlaylistListItem({ data }) {

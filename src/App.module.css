@@ -126,6 +126,7 @@
     rgb(18, 18, 18) 51%,
     rgb(18, 18, 18) 100%
   );
+  overflow: hidden;
 }
 
 .footer {

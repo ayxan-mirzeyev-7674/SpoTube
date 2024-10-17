@@ -21,6 +21,32 @@ function AddPlaylistModal() {
     console.log(selectedOnes);
   }, [selectedOnes]);
 
+  const toggleItem = (item) => {
+    let playlistsCopy = [...state.playlists];
+    if (selectedOnes.includes(item)) {
+      setSelectedOnes((prev) =>
+        prev.filter((selectedItem) => selectedItem !== item)
+      );
+      for (let i = 0; i < playlistsCopy.length; i++) {
+        if (playlistsCopy[i].id === item.id) {
+          playlistsCopy[i].content = playlistsCopy[i].content.filter(
+            (music) => music.id.videoId !== state.currentMusic.id.videoId
+          );
+          break;
+        }
+      }
+    } else {
+      setSelectedOnes((prev) => [...prev, item]);
+      for (let i = 0; i < playlistsCopy.length; i++) {
+        if (playlistsCopy[i].id === item.id) {
+          playlistsCopy[i].content.push(state.currentMusic);
+          break;
+        }
+      }
+    }
+    dispatch({ type: "createNewPlaylist", payload: playlistsCopy });
+  };
+
   return (
     <div>
       {" "}
@@ -31,7 +57,8 @@ function AddPlaylistModal() {
             thumbnail: item.thumbnail,
             title: item.title,
             item: item,
-            selected: selectedOnes.includes(item),
+            selected: selectedOnes?.includes(item),
+            togglePlaylist: () => toggleItem(item),
           }}
         />
       ))}

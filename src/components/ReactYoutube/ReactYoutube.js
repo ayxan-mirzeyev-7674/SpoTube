@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React, { Component, useContext } from "react";
 import YouTube from "react-youtube";
 
 class ReactYoutube extends Component {
@@ -17,7 +17,10 @@ class ReactYoutube extends Component {
     const player = event.target;
     this.props?.onStateChange(player.getCurrentState());
   }
+
   render() {
+    const { videoId, queue, queueId, loopSingle } = this.props;
+
     const opts = {
       height: "195",
       width: "320",
@@ -26,14 +29,16 @@ class ReactYoutube extends Component {
         autoplay: 1,
         controls: 0,
         rel: 0,
+        listType: "playlist",
+        playlist: loopSingle ? queue[queueId] : queue?.join(","),
+        index: queueId + 1,
+        loop: 1,
       },
     };
 
-    const { videoId } = this.props;
-
     return (
       <YouTube
-        videoId={videoId}
+        // videoId={videoId}
         opts={opts}
         onReady={this.videoOnReady}
         onStateChange={this.props.onStateChange}

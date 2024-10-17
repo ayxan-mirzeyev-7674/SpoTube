@@ -48,7 +48,7 @@ function Search({ data }) {
       if (query) {
         try {
           const response = await axios.get(
-            `http://192.168.31.94:4000/suggestions?q=${query}`
+            `https://html-css-js-yh7s.onrender.com/suggestions?q=${query}`
           );
           setSuggestions(response.data[1]);
           console.log(response.data[1]);
